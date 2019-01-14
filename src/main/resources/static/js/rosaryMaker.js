@@ -52,23 +52,18 @@ function setup() {
         for (let i = 0; i < 10; i++) {
             rosaryBalls.push(new RosaryBall(ballPlaceholder, ((11-i) * bottomCornerBallX + (i+2) * middleLeftCornerBallX)/13, ((11-i) * bottomCornerBallY + (i+2) * middleCornerBallY)/13, 6 + i))
         }
-        // dot
-        rosaryBalls.push(
-            new RosaryBall(ballPlaceholder, topLeftCornerBallX, topCornerBallY, 16));
+        rosaryBalls.push(new RosaryBall(ballPlaceholder, middleLeftCornerBallX, middleCornerBallY, 16));
         for (let i = 0; i < 10; i++) {
             rosaryBalls.push(new RosaryBall(ballPlaceholder, ((11-i) * middleLeftCornerBallX + (i+2) * topLeftCornerBallX)/13, ((11-i) * middleCornerBallY + (i+2) * topCornerBallY)/13, 17 + i))
         }
-        rosaryBalls.push(
-            new RosaryBall(ballPlaceholder, topRightCornerBallX, topCornerBallY, 27));
+        rosaryBalls.push(new RosaryBall(ballPlaceholder, topLeftCornerBallX, topCornerBallY, 27));
         for(let i = 0; i< 10; i ++) {
-            rosaryBalls.push(new RosaryBall(ballPlaceholder, ((11-i) * topLeftCornerBallX + (i+2) * topRightCornerBallX)/13, ((11-i) * topCornerBallY + (i+2) * topCornerBallY)/13, 53, 28*i));}
-        rosaryBalls.push(
-            new RosaryBall(ballPlaceholder, middleLeftCornerBallX, middleCornerBallY, 38));
+            rosaryBalls.push(new RosaryBall(ballPlaceholder, ((11-i) * topLeftCornerBallX + (i+2) * topRightCornerBallX)/13, ((11-i) * topCornerBallY + (i+2) * topCornerBallY)/13, 53, 28+i));}
+        rosaryBalls.push(new RosaryBall(ballPlaceholder, topRightCornerBallX, topCornerBallY, 38));
         for (let i = 0; i < 10; i++) {
             rosaryBalls.push(new RosaryBall(ballPlaceholder,((11-i) * topRightCornerBallX + (i+2) * middleRightCornerBallX)/13, ((11-i) * topCornerBallY + (i+2) * middleCornerBallY)/13, 39 + i))
         }
-        rosaryBalls.push(
-            new RosaryBall(ballPlaceholder, middleRightCornerBallX, middleCornerBallY, 49));
+        rosaryBalls.push(new RosaryBall(ballPlaceholder, middleRightCornerBallX, middleCornerBallY, 49));
         for (let i = 0; i < 10; i++) {
             rosaryBalls.push(new RosaryBall(ballPlaceholder, ((11-i) * middleRightCornerBallX + (i+2) * bottomCornerBallX)/13, ((11-i) * middleCornerBallY + (i+2) * bottomCornerBallY)/13, 50 + i))
         }
@@ -94,20 +89,47 @@ function setup() {
         rosaryBalls.push(mainBall);
     }
     function sendEmail() {
-        var email = ('amyndira@gmail.com');
-        var subject = ('Rosary order');
-        var body = ("\n\n\norder(please DO NOT delete): " + rosaryBalls.order());
-        window.location.replace("mailto:" + email + '?subject=' +subject+ '&body=' +body);
+        if (rosaryBalls.isFinished()) {
+            let email = ('amyndira@gmail.com');
+            let subject = ('Rosary order');
+            let body = ("order(please DO NOT delete): " + window.location.href.split("?")[0] +
+                "?rosaries=" + rosaryBalls.order() +
+                "%26thread=" + thread.imagePointer +
+                "%26cross=" + cross.imagePointer);
+            window.location.replace("mailto:" + email + '?subject=' + subject + '&body=' + body);
+        } else {
+        }
     }
-    function finishRosary() {
-
+    function mirrorFromLeft() {
+        for (let i = 5; i < (rosaryBalls.length+4)/2; i++) {
+            if (rosaryBalls[i].image !== ballPlaceholder) {
+                rosaryBalls[rosaryBalls.length+3-i].changeImg(rosaryBalls[i].image)
+            }
+        }
     }
-
+    function mirrorFromRight() {
+        for (let i = 5; i < (rosaryBalls.length+4)/2; i++) {
+            if (rosaryBalls[rosaryBalls.length+3-i].image !== ballPlaceholder) {
+                rosaryBalls[i].changeImg(rosaryBalls[rosaryBalls.length+3-i].image)
+            }
+        }
+    }
     let canvas = createCanvas(800,800);
-    let orderButton = createButton("Requesting an offer");
 
+    let orderButton = createButton("Requesting an offer");
     orderButton.position(leftArrowRosaryColorChange,topArrowRosaryColorChange-spaceBetweenArrows);
     orderButton.mouseClicked(sendEmail);
+    orderButton.style("user-select", "none");
+
+    let mirrorFromLeftButton = createButton("Mirror from left");
+    mirrorFromLeftButton.position(leftArrowRosaryColorChange,topArrowCrossTypeChange+arrowHeight+spaceBetweenArrows);
+    mirrorFromLeftButton.mouseClicked(mirrorFromLeft);
+    mirrorFromLeftButton.style("user-select", "none");
+
+    let mirrorFromRightButton = createButton("Mirror from right");
+    mirrorFromRightButton.position(leftArrowRosaryColorChange,topArrowCrossTypeChange+arrowHeight+2*spaceBetweenArrows);
+    mirrorFromRightButton.mouseClicked(mirrorFromRight);
+    mirrorFromRightButton.style("user-select", "none");
 
     background(230);
 
@@ -164,6 +186,15 @@ function setup() {
 
     ballPlacement();
 
+    let url_string = window.location.href;
+    let url = new URL(url_string);
+    let rosariesOrder = url.searchParams.get("rosaries");
+    if(rosariesOrder != null) {
+        rosaryBalls.load(rosariesOrder);
+        thread.changeImg(threadImages[url.searchParams.get("thread")]);
+            cross.changeImg(crossImages[url.searchParams.get("cross")]);
+    }
+
     arrows.push(new LeftArrow(leftArrowRosaryColorChange,topArrowRosaryColorChange,mainBall.imageIterateBackward),
                 new RightArrow(rightArrowRosaryColorChange,topArrowRosaryColorChange,mainBall.imageIterateForward),
                 new LeftArrow(leftArrowThreadColorChange,topArrowThreadColorChange,thread.imageIterateBackward),
@@ -209,14 +240,6 @@ function mouseClicked() {
         }
     });
 }
-
-rosaryBalls.order = function () {
-    let order = "";
-    for (let ball of rosaryBalls.slice(0,-1)) {
-        order += (ball.id + " " + rosaryImages.indexOf(ball.image) + "; ");
-    }
-    return order;
-};
 
 function isIntersect(circle) {
     return Math.sqrt((pmouseX - circle.x - circle.radius) ** 2 + (pmouseY - circle.y - circle.radius) ** 2) <= circle.radius;
@@ -274,11 +297,31 @@ function RightArrow(x,y,functionToRun){
 
 }
 
-/*rosaryBalls.load = function(stringInput) {
-    let loaded = stringInput.replace("; ",";");
-    loaded = loaded.split(";");
-    for(let i = 0; i < rosaryBalls-1; i++) {
-        if (loaded[i].split(""))
-            }
-    return loaded;
-};*/
+rosaryBalls.order = function () {
+    let order = "";
+    for (let ball of rosaryBalls.slice(0,-1)) {
+        order += (ball.id + ":" + rosaryImages.indexOf(ball.image) + "_");
+    }
+    return order.slice(0,-1);
+};
+
+rosaryBalls.load = function(stringInput) {
+    let loaded = stringInput.replace(" ","");
+    loaded = loaded.split("_");
+    for(let i = 0; i < rosaryBalls.length-1; i++) {
+        let element = loaded[i].split(":");
+        if (element[1] === "-1") {
+            rosaryBalls[i].image = ballPlaceholder
+        } else {
+            rosaryBalls[i].image = rosaryImages[element[1]];
+        }
+    }
+};
+
+rosaryBalls.isFinished = function() {
+    for (let ball of this) {
+        if (ball.image === ballPlaceholder)
+            return false;
+    }
+    return true;
+};
